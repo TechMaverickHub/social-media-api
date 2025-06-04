@@ -10,7 +10,7 @@ from app.user.serializers import UserDisplaySerializer, UserCreateSerializer
 from app.utils import get_response_schema
 
 
-class AdminSetupView(GenericAPIView):
+class SuperAdminSetupView(GenericAPIView):
     """ View: Admin setup """
 
     @swagger_auto_schema(
@@ -44,4 +44,4 @@ class AdminSetupView(GenericAPIView):
 
                 return get_response_schema(response_serializer.data, SuccessMessage.RECORD_CREATED.value, status.HTTP_201_CREATED,)
 
-            return get_response_schema(serializer.data,ErrorMessage.BAD_REQUEST.value, status.HTTP_400_BAD_REQUEST )
+            return get_response_schema(serializer.data,ErrorMessage.BAD_REQUEST.value, status.HTTP_400_BAD_REQUEST)

@@ -1,7 +1,7 @@
 from django.urls import path
 
-from app.user.views import AdminSetupView
+from app.user.views import SuperAdminSetupView
 
 urlpatterns = [
-    path('admin-setup/', AdminSetupView.as_view(), name='admin-setup'),
+    path('super-admin-setup/', SuperAdminSetupView.as_view(), name='admin-setup'),
 ]
