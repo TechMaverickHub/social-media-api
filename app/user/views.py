@@ -18,9 +18,14 @@ from app.utils import get_response_schema
 
 logger = logging.getLogger('django')
 
+class UserCreateThrottle(AnonRateThrottle):
+    """Custom throttle for login endpoint"""
+    rate = '10/hour'
+
 
 class SuperAdminSetupView(GenericAPIView):
     """ View: Admin setup """
+    throttle_classes = [UserCreateThrottle]
 
     @swagger_auto_schema(
         request_body=openapi.Schema(
