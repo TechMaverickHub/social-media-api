@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.contrib.auth import get_user_model, login
 from django.db import transaction
@@ -12,6 +14,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from app.global_constants import SuccessMessage, ErrorMessage, GlobalValues
 from app.user.serializers import UserDisplaySerializer, UserCreateSerializer
 from app.utils import get_response_schema
+
+logger = logging.getLogger('django')
 
 
 class SuperAdminSetupView(GenericAPIView):

@@ -228,3 +228,34 @@ DEBUG_TOOLBAR_CONFIG = {
     # Panel options
     'SQL_WARNING_THRESHOLD': 100,  # in milliseconds
 }
+
+
+# Log Config
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'logger.log',
+            'formatter': 'verbose',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'INFO',  # Set the desired logging level
+            'propagate': False,
+        },
+    },
+}
