@@ -1,6 +1,6 @@
 from rest_framework import status
 from rest_framework.views import exception_handler
-from rest_framework.exceptions import Throttled
+from rest_framework.exceptions import Throttled, PermissionDenied
 from django.conf import settings
 
 from app.global_constants import ErrorMessage
@@ -18,5 +18,8 @@ def custom_exception_handler(exc, context):
             settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY']: [message]
         }
         return get_response_schema(return_data, ErrorMessage.THROTTLE_LIMIT_EXCEEDED.value, status.HTTP_429_TOO_MANY_REQUESTS)
+
+    if isinstance(exc, PermissionDenied):
+        return get_response_schema({}, ErrorMessage.FORBIDDEN.value, status.HTTP_403_FORBIDDEN)
 
     return exception_handler(exc, context)
