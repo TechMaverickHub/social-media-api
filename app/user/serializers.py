@@ -13,6 +13,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             'email',
             'first_name',
             'last_name',
+            'username',
             'password',
             'bio',
             'birth_date',
@@ -25,9 +26,17 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         # Custom email validation logic
-        if get_user_model().objects.filter(email=value.strip(),is_active=True).exists():
+        email = value.strip()
+        if get_user_model().objects.filter(email=email,is_active=True).exists():
             raise serializers.ValidationError("Email already in use")
-        return value.lower()
+        return email
+
+    def validate_username(self, value):
+        username = value.strip()
+        if get_user_model().objects.filter(username=username,is_active=True).exists():
+            raise serializers.ValidationError("Username already in use")
+        return username
+
 
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -45,6 +54,7 @@ class UserDisplaySerializer(serializers.ModelSerializer):
             'email',
             'first_name',
             'last_name',
+            'username'
             'role',
             'bio',
             'birth_date',

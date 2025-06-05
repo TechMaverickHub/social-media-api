@@ -35,7 +35,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Basic profile information
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
-    username = models.CharField(unique=True)
+    username = models.CharField()
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
 
@@ -77,6 +77,9 @@ class User(AbstractBaseUser, PermissionsMixin):
             models.Index(fields=['username']),
             models.Index(fields=['created']),
             models.Index(fields=['role']),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['email', 'username'], name='unique_email_username')
         ]
 
 

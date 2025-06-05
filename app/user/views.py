@@ -35,6 +35,7 @@ class SuperAdminSetupView(GenericAPIView):
                 'website': openapi.Schema(type=openapi.TYPE_STRING, format='url', description='Website'),
                 'profile_picture': openapi.Schema(type=openapi.TYPE_STRING, format='binary',
                                                   description='Profile picture'),
+                'username': openapi.Schema(type=openapi.TYPE_STRING,description="Username"),
                 'is_private': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='Is private'),
             }
         )
@@ -53,7 +54,7 @@ class SuperAdminSetupView(GenericAPIView):
                 return get_response_schema(response_serializer.data, SuccessMessage.RECORD_CREATED.value,
                                            status.HTTP_201_CREATED, )
 
-            return get_response_schema(serializer.data, ErrorMessage.BAD_REQUEST.value, status.HTTP_400_BAD_REQUEST)
+            return get_response_schema(serializer.errors, ErrorMessage.BAD_REQUEST.value, status.HTTP_400_BAD_REQUEST)
 
 
 class UserLogin(GenericAPIView):
