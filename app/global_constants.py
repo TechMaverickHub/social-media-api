@@ -7,6 +7,9 @@ class SuccessMessage(str, Enum):
     RECORD_UPDATED = "Record updated successfully."
     RECORD_DELETED = "Record deleted successfully."
 
+    CREDENTIALS_MATCHED = "Login successful."
+    CREDENTIALS_REMOVED = "Logout successful."
+
 
 class ErrorMessage(str, Enum):
 
@@ -14,6 +17,8 @@ class ErrorMessage(str, Enum):
     BAD_REQUEST = "Bad request."
     FORBIDDEN = "Not authenticated."
     NOT_FOUND = "Resource not found."
+
+    PASSWORD_MISMATCH = "Password Mismatch."
 
 class GlobalValues(int, Enum):
 
