@@ -19,6 +19,9 @@ class ErrorMessage(str, Enum):
     NOT_FOUND = "Resource not found."
 
     PASSWORD_MISMATCH = "Password Mismatch."
+    MISSING_FIELDS = "Fields Missing"
+
+    THROTTLE_LIMIT_EXCEEDED = "Throttle Limit Exceeded"
 
 class GlobalValues(int, Enum):
 

@@ -1,6 +1,9 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from app.role.models import Role
+
+
 class UserCreateSerializer(serializers.ModelSerializer):
     """ Serializer: Create a new user """
 
@@ -43,9 +46,17 @@ class UserCreateSerializer(serializers.ModelSerializer):
         user = get_user_model().objects.create_user(password=password, **validated_data)
         return user
 
+class RoleDisplaySerializer(serializers.ModelSerializer):
+    """ Serializer: Display user details """
+
+    class Meta:
+        model = Role
+        fields = ('pk','name')
+
 
 class UserDisplaySerializer(serializers.ModelSerializer):
     """ Serializer: Display user details """
+    role = RoleDisplaySerializer(read_only=True)
 
     class Meta:
         model = get_user_model()
@@ -54,7 +65,7 @@ class UserDisplaySerializer(serializers.ModelSerializer):
             'email',
             'first_name',
             'last_name',
-            'username'
+            'username',
             'role',
             'bio',
             'birth_date',

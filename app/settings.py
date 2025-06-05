@@ -160,6 +160,7 @@ REST_FRAMEWORK = {
     'NON_FIELD_ERRORS_KEY': 'detail',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 5,
+    'EXCEPTION_HANDLER': "app.exceptions.custom_exception_handler"
 }
 
 # Custom user model

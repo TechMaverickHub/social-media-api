@@ -8,6 +8,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -35,7 +36,7 @@ class SuperAdminSetupView(GenericAPIView):
                 'website': openapi.Schema(type=openapi.TYPE_STRING, format='url', description='Website'),
                 'profile_picture': openapi.Schema(type=openapi.TYPE_STRING, format='binary',
                                                   description='Profile picture'),
-                'username': openapi.Schema(type=openapi.TYPE_STRING,description="Username"),
+                'username': openapi.Schema(type=openapi.TYPE_STRING, description="Username"),
                 'is_private': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='Is private'),
             }
         )
@@ -57,8 +58,16 @@ class SuperAdminSetupView(GenericAPIView):
             return get_response_schema(serializer.errors, ErrorMessage.BAD_REQUEST.value, status.HTTP_400_BAD_REQUEST)
 
 
+class UserLoginThrottle(AnonRateThrottle):
+    """Custom throttle for login endpoint"""
+    rate = '5/hour'
+
+
 class UserLogin(GenericAPIView):
     """ View: User login """
+
+    throttle_classes = [UserLoginThrottle]
+    serializer_class = UserDisplaySerializer
 
     @swagger_auto_schema(
         request_body=
@@ -71,35 +80,62 @@ class UserLogin(GenericAPIView):
         )
     )
     def post(self, request):
-        email = request.data.get('email')
+        try:
+            email = request.data.get('email')
+            password = request.data.get('password')
 
-        user = get_user_model().objects.filter(email=email, is_active=True).first()
+            if not email or not password:
+                return get_response_schema(
+                    {settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY']: [ErrorMessage.MISSING_FIELDS.value]},
+                    ErrorMessage.BAD_REQUEST.value,
+                    status.HTTP_400_BAD_REQUEST
+                )
 
-        if user is None:
-            return get_response_schema({}, ErrorMessage.NOT_FOUND.value, status.HTTP_404_NOT_FOUND)
+            user = get_user_model().objects.filter(email=email, is_active=True).first()
 
-        if user.check_password(request.data.get('password')):
+            if user is None:
+                logger.warning(f"Login attempt for non-existent email: {email}")
+                return get_response_schema(
+                    {},
+                    ErrorMessage.NOT_FOUND.value,
+                    status.HTTP_404_NOT_FOUND
+                )
+
+            if not user.check_password(password):
+                logger.warning(f"Failed login attempt for user: {email}")
+                return get_response_schema(
+                    {settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY']: [ErrorMessage.PASSWORD_MISMATCH.value]},
+                    ErrorMessage.BAD_REQUEST.value,
+                    status.HTTP_400_BAD_REQUEST
+                )
+
+            # Successful authentication
             login(request, user)
-
-            # Get token details
             refresh = RefreshToken.for_user(user)
+            user_data = self.get_serializer(user).data
 
-            # Get user details
-            user_data = UserDisplaySerializer(user)
+            # Log successful login (without sensitive data)
+            logger.info(f"User {user.id} logged in successfully")
 
             return_data = {
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
-                'user': user_data.data
+                'user': user_data
             }
 
-            return get_response_schema(return_data, SuccessMessage.CREDENTIALS_MATCHED.value, status.HTTP_200_OK)
+            return get_response_schema(
+                return_data,
+                SuccessMessage.CREDENTIALS_MATCHED.value,
+                status.HTTP_200_OK
+            )
 
-        return_data = {
-            settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY']: [ErrorMessage.PASSWORD_MISMATCH.value]
-        }
-
-        return get_response_schema(return_data, ErrorMessage.BAD_REQUEST.value, status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Unexpected error during login: {str(e)}", exc_info=True)
+            return get_response_schema(
+                {settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY']: [ErrorMessage.SOMETHING_WENT_WRONG.value]},
+                ErrorMessage.SOMETHING_WENT_WRONG.value,
+                status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class UserLogout(GenericAPIView):
