@@ -77,3 +77,22 @@ class UserDisplaySerializer(serializers.ModelSerializer):
             'is_active',
             'last_active',
         )
+
+
+class UserListFilterDisplaySerializer(serializers.ModelSerializer):
+    """ Serializer: Display user details """
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            'email',
+            'first_name',
+            'last_name',
+            'username',
+            'bio',
+            'birth_date',
+            'location',
+            'website',
+            'profile_picture',
+            'last_active',
+        )

@@ -6,14 +6,15 @@ from django.db import transaction
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from app.core.views import CustomPageNumberPagination
 from app.global_constants import SuccessMessage, ErrorMessage, GlobalValues
-from app.user.serializers import UserDisplaySerializer, UserCreateSerializer
+from app.user.serializers import UserDisplaySerializer, UserCreateSerializer, UserListFilterDisplaySerializer
 from app.utils import get_response_schema
 from permissions import IsSuperAdmin
 
@@ -216,3 +217,53 @@ class AdminSetupView(GenericAPIView):
                 ErrorMessage.BAD_REQUEST.value,
                 status.HTTP_400_BAD_REQUEST
             )
+
+
+class AdminListFilter(ListAPIView):
+    """View: Admin List Filter"""
+
+    serializer_class = UserListFilterDisplaySerializer
+    pagination_class = CustomPageNumberPagination
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsSuperAdmin]
+
+    def get_queryset(self):
+        queryset = get_user_model().objects.filter(is_active=True, role_id = GlobalValues.ADMIN.value).order_by('-id')
+
+        #Filter by first name
+        if self.request.query_params.get('first_name'):
+            queryset = queryset.filter(first_name__istartswith=self.request.query_params.get('first_name'))
+
+        if self.request.query_params.get('last_name'):
+            queryset = queryset.filter(last_name__istartswith=self.request.query_params.get('last_name'))
+
+        if self.request.query_params.get('email'):
+            queryset = queryset.filter(email__istartswith=self.request.query_params.get('email'))
+
+        if self.request.query_params.get('username'):
+            queryset = queryset.filter(username__istartswith=self.request.query_params.get('email'))
+
+        if self.request.query_params.get('location'):
+            queryset = queryset.filter(location__istartswith=self.request.query_params.get('email'))
+
+        if self.request.query_params.get('birth_date'):
+            queryset = queryset.filter(birth_date__date=self.request.query_params.get('birth_date'))
+
+        return queryset
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('first_name', openapi.IN_QUERY, type=openapi.TYPE_STRING,
+                              description='Filter by first name'),
+            openapi.Parameter('last_name', openapi.IN_QUERY, type=openapi.TYPE_STRING,
+                              description='Filter by last name'),
+            openapi.Parameter('email', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='Filter by email'),
+            openapi.Parameter('username', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='Filter by username'),
+            openapi.Parameter('location', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='Filter by location'),
+            openapi.Parameter('birthdate', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='Filter by birthdate', format=openapi.FORMAT_DATE),
+        ]
+    )
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
