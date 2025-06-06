@@ -8,4 +8,4 @@ class IsSuperAdmin(BasePermission):
     Allows access only to users with the SuperAdmin role.
     """
     def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated and request.user.role_id == GlobalValues.SUPER_ADMIN.value
+        return request.user and request.user.is_authenticated and request.user.role_id == GlobalValues.SUPER_ADMIN

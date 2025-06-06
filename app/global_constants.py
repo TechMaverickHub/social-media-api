@@ -15,8 +15,9 @@ class ErrorMessage(str, Enum):
 
     SOMETHING_WENT_WRONG = "Something went wrong, please try again."
     BAD_REQUEST = "Bad request."
-    FORBIDDEN = "Not authenticated."
+    FORBIDDEN = "Not Authorized."
     NOT_FOUND = "Resource not found."
+    UNAUTHORIZED = "Not Authenticated"
 
     PASSWORD_MISMATCH = "Password Mismatch."
     MISSING_FIELDS = "Fields Missing"
