@@ -50,7 +50,7 @@ class SuperAdminSetupView(GenericAPIView):
     )
     def post(self, request):
         with transaction.atomic():
-            request.data['role'] = GlobalValues.SUPER_ADMIN
+            request.data['role'] = GlobalValues.SUPER_ADMIN.value
 
             serializer = UserCreateSerializer(data=request.data)
             if serializer.is_valid():
@@ -59,10 +59,10 @@ class SuperAdminSetupView(GenericAPIView):
                 user = get_user_model().objects.get(pk=serializer.data['pk'])
                 response_serializer = UserDisplaySerializer(user)
 
-                return get_response_schema(response_serializer.data, SuccessMessage.RECORD_CREATED,
+                return get_response_schema(response_serializer.data, SuccessMessage.RECORD_CREATED.value,
                                            status.HTTP_201_CREATED, )
 
-            return get_response_schema(serializer.errors, ErrorMessage.BAD_REQUEST, status.HTTP_400_BAD_REQUEST)
+            return get_response_schema(serializer.errors, ErrorMessage.BAD_REQUEST.value, status.HTTP_400_BAD_REQUEST)
 
 
 class UserLoginThrottle(AnonRateThrottle):
@@ -93,8 +93,8 @@ class UserLogin(GenericAPIView):
 
             if not email or not password:
                 return get_response_schema(
-                    {settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY']: [ErrorMessage.MISSING_FIELDS]},
-                    ErrorMessage.BAD_REQUEST,
+                    {settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY']: [ErrorMessage.MISSING_FIELDS.value]},
+                    ErrorMessage.BAD_REQUEST.value,
                     status.HTTP_400_BAD_REQUEST
                 )
 
@@ -104,15 +104,15 @@ class UserLogin(GenericAPIView):
                 logger.warning(f"Login attempt for non-existent email: {email}")
                 return get_response_schema(
                     {},
-                    ErrorMessage.NOT_FOUND,
+                    ErrorMessage.NOT_FOUND.value,
                     status.HTTP_404_NOT_FOUND
                 )
 
             if not user.check_password(password):
                 logger.warning(f"Failed login attempt for user: {email}")
                 return get_response_schema(
-                    {settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY']: [ErrorMessage.PASSWORD_MISMATCH]},
-                    ErrorMessage.BAD_REQUEST,
+                    {settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY']: [ErrorMessage.PASSWORD_MISMATCH.value]},
+                    ErrorMessage.BAD_REQUEST.value,
                     status.HTTP_400_BAD_REQUEST
                 )
 
@@ -132,15 +132,15 @@ class UserLogin(GenericAPIView):
 
             return get_response_schema(
                 return_data,
-                SuccessMessage.CREDENTIALS_MATCHED,
+                SuccessMessage.CREDENTIALS_MATCHED.value,
                 status.HTTP_200_OK
             )
 
         except Exception as e:
             logger.error(f"Unexpected error during login: {str(e)}", exc_info=True)
             return get_response_schema(
-                {settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY']: [ErrorMessage.SOMETHING_WENT_WRONG]},
-                ErrorMessage.SOMETHING_WENT_WRONG,
+                {settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY']: [ErrorMessage.SOMETHING_WENT_WRONG.value]},
+                ErrorMessage.SOMETHING_WENT_WRONG.value,
                 status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -166,9 +166,9 @@ class UserLogout(GenericAPIView):
             token = RefreshToken(refresh_token)
             token.blacklist()
 
-            return get_response_schema({}, SuccessMessage.CREDENTIALS_REMOVED, status.HTTP_204_NO_CONTENT)
+            return get_response_schema({}, SuccessMessage.CREDENTIALS_REMOVED.value, status.HTTP_204_NO_CONTENT)
         except:
-            return get_response_schema({}, ErrorMessage.BAD_REQUEST, status.HTTP_400_BAD_REQUEST)
+            return get_response_schema({}, ErrorMessage.BAD_REQUEST.value, status.HTTP_400_BAD_REQUEST)
 
 
 class AdminSetupView(GenericAPIView):
@@ -197,7 +197,7 @@ class AdminSetupView(GenericAPIView):
     )
     def post(self, request):
         with transaction.atomic():
-            request.data['role'] = GlobalValues.ADMIN  # set admin role
+            request.data['role'] = GlobalValues.ADMIN.value  # set admin role
 
             serializer = UserCreateSerializer(data=request.data)
             if serializer.is_valid():
@@ -208,13 +208,13 @@ class AdminSetupView(GenericAPIView):
 
                 return get_response_schema(
                     response_serializer.data,
-                    SuccessMessage.RECORD_CREATED,
+                    SuccessMessage.RECORD_CREATED.value,
                     status.HTTP_201_CREATED
                 )
 
             return get_response_schema(
                 serializer.errors,
-                ErrorMessage.BAD_REQUEST,
+                ErrorMessage.BAD_REQUEST.value,
                 status.HTTP_400_BAD_REQUEST
             )
 
@@ -229,7 +229,7 @@ class AdminListFilter(ListAPIView):
     permission_classes = [IsSuperAdmin]
 
     def get_queryset(self):
-        queryset = get_user_model().objects.filter(is_active=True, role_id = GlobalValues.ADMIN).order_by('-id')
+        queryset = get_user_model().objects.filter(is_active=True, role_id = GlobalValues.ADMIN.value).order_by('-id')
 
         #Filter by first name
         if self.request.query_params.get('first_name'):
