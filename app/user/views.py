@@ -281,3 +281,39 @@ class AdminListFilter(ListAPIView):
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
+
+class UserDetailAPI(GenericAPIView):
+
+    permission_classes = [IsSuperAdmin]
+
+    def get_object(self, pk):
+
+        user_queryset = get_user_model().objects.select_related('role').filter(pk=pk,is_active=True, role_id=GlobalValues.ADMIN.value)
+        if user_queryset:
+            return user_queryset[0]
+        return None
+
+    def get(self, request, pk):
+
+        if not pk:
+            return get_response_schema({}, ErrorMessage.BAD_REQUEST.value, status.HTTP_400_BAD_REQUEST)
+
+        user = self.get_object(pk)
+        if not user:
+            return get_response_schema(
+                {},
+                ErrorMessage.NOT_FOUND.value,
+                status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = UserDisplaySerializer(user)
+        return get_response_schema(
+            serializer.data,
+            SuccessMessage.RECORD_RETRIEVED.value,
+            status.HTTP_200_OK
+        )
+
+
+
+
+
