@@ -25,12 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-^7($597n3gs7f+!yzc89bkvp%+o+-0=h-*3wp2j1hw-8u6ptq&'
 
+load_dotenv()  # take environment variables from .env.
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = ['*']
-
-load_dotenv()  # take environment variables from .env.
 
 # Application definition
 
@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     # Django debug toolbar
     'debug_toolbar',
 
+    'silk',
+
     # Custom Apps
     'app.core',
     'app.user',
@@ -58,6 +60,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'silk.middleware.SilkyMiddleware',  # Add this at the top
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -65,7 +69,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'app.urls'

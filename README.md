@@ -70,9 +70,7 @@ DATABASE_USER=your_db_user
 DATABASE_PASS=your_db_password
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
-SECRET_KEY=your_django_secret_key
 DEBUG=True
-ALLOWED_HOSTS=127.0.0.1,localhost
 ```
 
 ---

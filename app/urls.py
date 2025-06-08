@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 import debug_toolbar
+from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 # swagger imports
@@ -37,11 +38,14 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Debug Toolbar
-    path('debuger/', include(debug_toolbar.urls)),
+    path('__debug__/', include(debug_toolbar.urls)),
 
     # App URLs
-    path('api/user/', include('app.user.urls')),
-
-    # Documentation
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('api/user/', include('app.user.urls'))
 ]
+
+if settings.DEBUG:
+    urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]
+    # Documentation
+    urlpatterns += [path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui')]
+
