@@ -229,26 +229,39 @@ class AdminListFilter(ListAPIView):
     permission_classes = [IsSuperAdmin]
 
     def get_queryset(self):
-        queryset = get_user_model().objects.filter(is_active=True, role_id = GlobalValues.ADMIN.value).order_by('-id')
 
-        #Filter by first name
-        if self.request.query_params.get('first_name'):
-            queryset = queryset.filter(first_name__istartswith=self.request.query_params.get('first_name'))
+        query_params = self.request.query_params
 
-        if self.request.query_params.get('last_name'):
-            queryset = queryset.filter(last_name__istartswith=self.request.query_params.get('last_name'))
+        # Only fetch necessary fields to optimize performance
+        queryset = get_user_model().objects.filter(
+            is_active=True,
+            role_id=GlobalValues.ADMIN.value
+        ).only(
+            'email', 'first_name', 'last_name', 'username', 'bio',
+            'birth_date', 'location', 'website', 'profile_picture', 'last_active'
+        ).order_by('-id')
 
-        if self.request.query_params.get('email'):
-            queryset = queryset.filter(email__istartswith=self.request.query_params.get('email'))
+        # Extract filters
+        first_name = query_params.get('first_name')
+        last_name = query_params.get('last_name')
+        email = query_params.get('email')
+        username = query_params.get('username')
+        location = query_params.get('location')
+        birth_date = query_params.get('birth_date')
 
-        if self.request.query_params.get('username'):
-            queryset = queryset.filter(username__istartswith=self.request.query_params.get('email'))
-
-        if self.request.query_params.get('location'):
-            queryset = queryset.filter(location__istartswith=self.request.query_params.get('email'))
-
-        if self.request.query_params.get('birth_date'):
-            queryset = queryset.filter(birth_date__date=self.request.query_params.get('birth_date'))
+        # Apply filters
+        if first_name:
+            queryset = queryset.filter(first_name__istartswith=first_name)
+        if last_name:
+            queryset = queryset.filter(last_name__istartswith=last_name)
+        if email:
+            queryset = queryset.filter(email__istartswith=email)
+        if username:
+            queryset = queryset.filter(username__istartswith=username)
+        if location:
+            queryset = queryset.filter(location__istartswith=location)
+        if birth_date:
+            queryset = queryset.filter(birth_date__date=birth_date)
 
         return queryset
 
@@ -261,7 +274,8 @@ class AdminListFilter(ListAPIView):
             openapi.Parameter('email', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='Filter by email'),
             openapi.Parameter('username', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='Filter by username'),
             openapi.Parameter('location', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='Filter by location'),
-            openapi.Parameter('birthdate', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='Filter by birthdate', format=openapi.FORMAT_DATE),
+            openapi.Parameter('birth_date', openapi.IN_QUERY, type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE,
+                              description='Filter by birth date'),
         ]
     )
     def get(self, request, *args, **kwargs):
