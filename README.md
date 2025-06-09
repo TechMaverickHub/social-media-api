@@ -82,6 +82,7 @@ DEBUG=True
 ```bash
 python manage.py makemigrations role
 python manage.py makemigrations user
+python manage.py makemigrations post
 ```
 
 ### ⚙️ Apply Migrations

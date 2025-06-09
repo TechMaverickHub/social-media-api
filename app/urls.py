@@ -41,7 +41,8 @@ urlpatterns = [
     path('__debug__/', include(debug_toolbar.urls)),
 
     # App URLs
-    path('api/user/', include('app.user.urls'))
+    path('api/user/', include('app.user.urls')),
+    path('api/post/', include('app.post.urls'))
 ]
 
 if settings.DEBUG:
