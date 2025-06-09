@@ -14,7 +14,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from app.core.views import CustomPageNumberPagination
 from app.global_constants import SuccessMessage, ErrorMessage, GlobalValues
-from app.user.serializers import UserDisplaySerializer, UserCreateSerializer, UserListFilterDisplaySerializer
+from app.user.serializers import UserDisplaySerializer, UserCreateSerializer, UserListFilterDisplaySerializer, \
+    UserUpdateSerializer
 from app.utils import get_response_schema
 from permissions import IsSuperAdmin
 
@@ -294,12 +295,15 @@ class UserDetailAPI(GenericAPIView):
         return None
 
     def get(self, request, pk):
+        logger.info(f"UserDetailAPI accessed by user: {request.user}. Requested user ID: {pk}")
 
         if not pk:
+            logger.warning("Bad request: No primary key provided.")
             return get_response_schema({}, ErrorMessage.BAD_REQUEST.value, status.HTTP_400_BAD_REQUEST)
 
         user = self.get_object(pk)
         if not user:
+            logger.error(f"Error retrieving user with ID {pk}", exc_info=True)
             return get_response_schema(
                 {},
                 ErrorMessage.NOT_FOUND.value,
@@ -307,11 +311,97 @@ class UserDetailAPI(GenericAPIView):
             )
 
         serializer = UserDisplaySerializer(user)
+        logger.info(f"Successfully retrieved user with ID {pk}")
         return get_response_schema(
             serializer.data,
             SuccessMessage.RECORD_RETRIEVED.value,
             status.HTTP_200_OK
         )
+
+
+    def delete(self, request, pk):
+
+        logger.info(f"UserDetailAPI accessed by user: {request.user}. Requested user ID: {pk}")
+
+        if not pk:
+            logger.warning("Bad request: No primary key provided.")
+            return get_response_schema({}, ErrorMessage.BAD_REQUEST.value, status.HTTP_400_BAD_REQUEST)
+
+        user = self.get_object(pk)
+        if not user:
+            logger.error(f"Error retrieving user with ID {pk}", exc_info=True)
+            return get_response_schema(
+                {},
+                ErrorMessage.NOT_FOUND.value,
+                status.HTTP_404_NOT_FOUND
+            )
+
+        user.is_active = False
+        user.save()
+
+        logger.info(f"Successfully deleted user with ID {pk}")
+
+        return get_response_schema({}, SuccessMessage.RECORD_DELETED.value, status.HTTP_204_NO_CONTENT)
+
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'first_name': openapi.Schema(type=openapi.TYPE_STRING, description='First name'),
+                'last_name': openapi.Schema(type=openapi.TYPE_STRING, description='Last name'),
+                'email': openapi.Schema(type=openapi.TYPE_STRING, description='Email'),
+                'password': openapi.Schema(type=openapi.TYPE_STRING, description='Password'),
+                'bio': openapi.Schema(type=openapi.TYPE_STRING, description='Biography'),
+                'birth_date': openapi.Schema(type=openapi.TYPE_STRING, format='date', description='Birth date'),
+                'location': openapi.Schema(type=openapi.TYPE_STRING, description='Location'),
+                'website': openapi.Schema(type=openapi.TYPE_STRING, format='url', description='Website'),
+                'profile_picture': openapi.Schema(type=openapi.TYPE_STRING, format='binary',
+                                                  description='Profile picture'),
+                'username': openapi.Schema(type=openapi.TYPE_STRING, description="Username"),
+                'is_private': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='Is private'),
+            }
+        )
+    )
+    def patch(self, request, pk):
+
+        logger.info(f"UserDetailAPI accessed by user: {request.user}. Requested user ID: {pk}")
+
+        if not pk:
+            logger.warning("Bad request: No primary key provided.")
+            return get_response_schema({}, ErrorMessage.BAD_REQUEST.value, status.HTTP_400_BAD_REQUEST)
+
+        user = self.get_object(pk)
+        if not user:
+            logger.error(f"Error retrieving user with ID {pk}", exc_info=True)
+            return get_response_schema(
+                {},
+                ErrorMessage.NOT_FOUND.value,
+                status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            logger.info(f"Successfully updated user with ID {pk}")
+            return get_response_schema(
+                serializer.data,
+                SuccessMessage.RECORD_UPDATED.value,
+                status.HTTP_201_CREATED
+            )
+
+        logger.info(f"Error deleting user with ID {pk}")
+
+        return get_response_schema(
+            serializer.errors,
+            ErrorMessage.BAD_REQUEST.value,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+
+
+
+
 
 
 

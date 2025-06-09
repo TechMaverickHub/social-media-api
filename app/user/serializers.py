@@ -97,3 +97,36 @@ class UserListFilterDisplaySerializer(serializers.ModelSerializer):
             'profile_picture',
             'last_active',
         )
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = (
+            'pk',
+            'email',
+            'first_name',
+            'last_name',
+            'username',
+            'password',
+            'bio',
+            'birth_date',
+            'location',
+            'website',
+            'profile_picture',
+            'is_private',
+            'role'
+        )
+
+    def validate_email(self, value):
+        # Custom email validation logic
+        email = value.strip()
+        if get_user_model().objects.filter(email=email,is_active=True).exclude(pk=self.instance.pk).exists():
+            raise serializers.ValidationError("Email already in use")
+        return email
+
+    def validate_username(self, value):
+        username = value.strip()
+        if get_user_model().objects.filter(username=username,is_active=True).exclude(pk=self.instance.pk).exists():
+            raise serializers.ValidationError("Username already in use")
+        return username
+
