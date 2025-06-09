@@ -3,6 +3,7 @@ import logging
 from django.conf import settings
 from django.contrib.auth import get_user_model, login
 from django.db import transaction
+from django.utils.timezone import now  # Add this import at the top
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -119,6 +120,11 @@ class UserLogin(GenericAPIView):
 
             # Successful authentication
             login(request, user)
+
+            # Update last_active timestamp
+            user.last_active = now()
+            user.save(update_fields=["last_active"])
+
             refresh = RefreshToken.for_user(user)
             user_data = self.get_serializer(user).data
 
